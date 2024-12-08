@@ -1,16 +1,25 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"os"
 	"strings"
-	"encoding/csv"
 	"time"
+
+	flag "github.com/spf13/pflag"
 )
 
-import flag "github.com/spf13/pflag"
+func makeCSV(fileName string, force bool) {
 
-func makeCSV (fileName string, force bool) {
+	/*
+		Function to create a CSV
+
+		Parameters:
+			fileName (string): The name of the file to create
+			force (bool): If true, overwrite the file if it already exists
+	*/
+
 	if !strings.HasSuffix(fileName, ".csv") {
 		fmt.Println("File does not ends with .csv. Appending .csv to the file name")
 		fileName = fileName + ".csv"
@@ -39,6 +48,12 @@ func makeCSV (fileName string, force bool) {
 }
 
 func displayFile(fileName string) {
+	/*
+		Function to display the contents of a CSV file
+
+		Parameters:
+			fileName (string): The name of the file to display
+	*/
 	fmt.Println("Displaying file: ", fileName)
 	file, err := os.Open(fileName)
 	if err != nil {
@@ -62,6 +77,13 @@ func displayFile(fileName string) {
 }
 
 func writeLine(fileName string, text string) {
+	/*
+		Function to write a line to a CSV file
+
+		Parameters:
+			fileName (string): The name of the file to write to
+			text (string): The text to write to the file
+	*/
 	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
@@ -80,13 +102,16 @@ func main() {
 	var writeText = flag.StringP("text", "t", "", "The data to write to the file")
 	flag.Parse()
 
+	// To create a file
 	if *makeFileName != "" {
 		makeCSV(*makeFileName, *makeForce)
-	} 
+	}
+	// To display the contents of a file
 	if *displayFileName != "" {
 		displayFile(*displayFileName)
 	}
 
+	// To write to a file
 	if *writeFileName != "" && *writeText != "" {
 		writeLine(*writeFileName, *writeText)
 	} else if *writeFileName != "" {
