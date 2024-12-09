@@ -1,12 +1,15 @@
 package main
 
 import (
+	"crypto/rand"
 	"encoding/csv"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"strings"
+	"text/tabwriter"
 	"time"
-	uuid "github.com/google/uuid"
+
 	flag "github.com/spf13/pflag"
 )
 
@@ -41,7 +44,7 @@ func makeCSV(fileName string, force bool) {
 		return
 	}
 	writer := csv.NewWriter(file)
-	writer.Write([]string{"ID","Task", "Time"})
+	writer.Write([]string{"ID", "Task", "Time"})
 	writer.Flush()
 	defer file.Close()
 	fmt.Println("File created successfully")
@@ -54,7 +57,6 @@ func listFile(fileName string) {
 		Parameters:
 			fileName (string): The name of the file to display
 	*/
-	fmt.Println("Listing file: ", fileName)
 	file, err := os.Open(fileName)
 	if err != nil {
 		panic(err)
@@ -68,12 +70,14 @@ func listFile(fileName string) {
 		fmt.Println("File is empty")
 		return
 	}
+
+	// Writing to file
+	fmt.Println("Listing file: ", fileName)
+	w := tabwriter.NewWriter(os.Stdout, 10, 0, 2, ' ', tabwriter.Debug)
 	for _, row := range data {
-		for _, col := range row {
-			fmt.Printf("%s\t", col)
-		}
-		fmt.Println()
+		fmt.Fprintln(w, strings.Join(row, "\t"))
 	}
+	w.Flush()
 }
 
 func writeLine(fileName string, text string) {
@@ -85,17 +89,19 @@ func writeLine(fileName string, text string) {
 			text (string): The text to write to the file
 	*/
 	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0644)
-	id := uuid.New()
+	id := make([]byte, 4)
+	rand.Read(id)
+	idString := hex.EncodeToString(id)
 	if err != nil {
 		panic(err)
 	}
-	data := []string{id.String(), text, time.Now().Format("2006-01-02 15:04:05")}
+	data := []string{idString, text, time.Now().Format("2006-01-02 15:04:05")}
 	writer := csv.NewWriter(file)
 	writer.Write(data)
 	writer.Flush()
 }
 
-func deleteTask(filename string, id string){
+func deleteTask(filename string, id string) {
 	/*
 		Function to delete a task from a CSV file
 
